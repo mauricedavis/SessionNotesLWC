@@ -1,0 +1,460 @@
+<template>
+    <div class="session-wizard">
+
+        <!-- STEP INDICATOR -->
+        <div class="step-bar">
+            <div class={stepClass1}>
+                <span class="step-num">1</span>
+                <span class="step-label">New Session</span>
+            </div>
+            <div class="step-connector" aria-hidden="true"></div>
+            <div class={stepClass2}>
+                <span class="step-num">2</span>
+                <span class="step-label">Review &amp; Save</span>
+            </div>
+        </div>
+
+        <!-- LOADING -->
+        <template if:true={isLoading}>
+            <div class="loading-state">
+                <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+                <p>Loading session data…</p>
+            </div>
+        </template>
+
+        <!-- PAGE ERROR BANNER -->
+        <template if:true={pageError}>
+            <div class="error-banner" role="alert">
+                <lightning-icon icon-name="utility:error" size="small"></lightning-icon>
+                <span>{pageError}</span>
+            </div>
+        </template>
+
+        <!-- ===================== STEP 1: NEW SESSION ===================== -->
+        <template if:true={isStep1}>
+            <div class="card fade-in">
+
+                <!-- Context Header -->
+                <div class="context-header">
+                    <div class="context-item">
+                        <span class="context-label">Account</span>
+                        <span class="context-value">{accountName}</span>
+                    </div>
+                    <div class="context-item">
+                        <span class="context-label">Case #</span>
+                        <span class="context-value">{caseNumber}</span>
+                    </div>
+                    <div class="context-item">
+                        <span class="context-label">Consultant</span>
+                        <span class="context-value">{consultantName}</span>
+                    </div>
+                </div>
+
+                <!-- Date/Time + Site -->
+                <div class="form-row">
+                    <div class="form-field">
+                        <lightning-input
+                            type="datetime-local"
+                            label="Session Date &amp; Time"
+                            value={sessionDateTime}
+                            required
+                            onchange={handleDateTimeChange}>
+                        </lightning-input>
+                    </div>
+                    <div class="form-field">
+                        <lightning-input
+                            type="text"
+                            label="Session Site"
+                            value={sessionSite}
+                            onchange={handleFieldChange}
+                            data-field="sessionSite">
+                        </lightning-input>
+                    </div>
+                </div>
+
+                <!-- Area of Counseling + Session Type -->
+                <div class="form-row">
+                    <div class="form-field">
+                        <lightning-combobox
+                            label="Area of Counseling"
+                            value={areaOfCounseling}
+                            options={areaOfCounselingOptions}
+                            required
+                            onchange={handleFieldChange}
+                            data-field="areaOfCounseling">
+                        </lightning-combobox>
+                    </div>
+                    <div class="form-field">
+                        <lightning-combobox
+                            label="Session Type"
+                            value={sessionType}
+                            options={sessionTypeOptions}
+                            required
+                            onchange={handleFieldChange}
+                            data-field="sessionType">
+                        </lightning-combobox>
+                    </div>
+                </div>
+
+                <!-- Delivery Type + Business Status -->
+                <div class="form-row">
+                    <div class="form-field">
+                        <lightning-combobox
+                            label="Delivery Type"
+                            value={deliveryType}
+                            options={deliveryTypeOptions}
+                            required
+                            onchange={handleFieldChange}
+                            data-field="deliveryType">
+                        </lightning-combobox>
+                    </div>
+                    <div class="form-field">
+                        <lightning-combobox
+                            label="Business Status"
+                            value={businessStatus}
+                            options={businessStatusOptions}
+                            required
+                            onchange={handleFieldChange}
+                            data-field="businessStatus">
+                        </lightning-combobox>
+                    </div>
+                </div>
+
+                <!-- Hours (4-up) -->
+                <div class="form-row form-row-4">
+                    <div class="form-field">
+                        <lightning-input
+                            type="number"
+                            label="Contact Hours"
+                            value={contactHours}
+                            min="0"
+                            step="0.25"
+                            required
+                            field-level-help="OSBDC: Time spent directly counseling/interacting with a client."
+                            onchange={handleHoursChange}
+                            data-field="contactHours">
+                        </lightning-input>
+                    </div>
+                    <div class="form-field">
+                        <lightning-input
+                            type="number"
+                            label="Prep Hours"
+                            value={prepHours}
+                            min="0"
+                            step="0.25"
+                            required
+                            field-level-help="OSBDC: Time spent preparing and researching for a client."
+                            onchange={handleHoursChange}
+                            data-field="prepHours">
+                        </lightning-input>
+                    </div>
+                    <div class="form-field">
+                        <lightning-input
+                            type="number"
+                            label="Travel Hours"
+                            value={travelHours}
+                            min="0"
+                            step="0.25"
+                            field-level-help="Time spent traveling to or from a client."
+                            onchange={handleHoursChange}
+                            data-field="travelHours">
+                        </lightning-input>
+                    </div>
+                    <div class="form-field">
+                        <lightning-input
+                            type="number"
+                            label="Travel Distance"
+                            value={travelDistance}
+                            min="0"
+                            step="0.1"
+                            field-level-help="Round-trip miles traveled for this session."
+                            onchange={handleHoursChange}
+                            data-field="travelDistance">
+                        </lightning-input>
+                    </div>
+                </div>
+
+                <!-- Verified + Exporting -->
+                <div class="checkbox-row">
+                    <lightning-input
+                        type="checkbox"
+                        label="Verified"
+                        checked={verified}
+                        onchange={handleCheckboxChange}
+                        data-field="verified">
+                    </lightning-input>
+                    <lightning-input
+                        type="checkbox"
+                        label="Exporting"
+                        checked={exporting}
+                        onchange={handleCheckboxChange}
+                        data-field="exporting">
+                    </lightning-input>
+                </div>
+
+                <!-- Program Funding + Sub-Program -->
+                <div class="form-row">
+                    <div class="form-field">
+                        <lightning-combobox
+                            label="Program Funding"
+                            value={programFunding}
+                            options={programFundingOptions}
+                            onchange={handleFieldChange}
+                            data-field="programFunding">
+                        </lightning-combobox>
+                    </div>
+                    <div class="form-field">
+                        <lightning-combobox
+                            label="Sub-Program"
+                            value={subProgram}
+                            options={subProgramOptions}
+                            onchange={handleFieldChange}
+                            data-field="subProgram">
+                        </lightning-combobox>
+                    </div>
+                </div>
+
+                <!-- Language + Language Other -->
+                <div class="form-row">
+                    <div class="form-field">
+                        <lightning-combobox
+                            label="Language"
+                            value={language}
+                            options={languageOptions}
+                            required
+                            onchange={handleFieldChange}
+                            data-field="language">
+                        </lightning-combobox>
+                    </div>
+                    <div class="form-field">
+                        <lightning-input
+                            type="text"
+                            label="Language - Other"
+                            value={languageOther}
+                            field-level-help="If 'Other' selected above, specify the language here."
+                            onchange={handleFieldChange}
+                            data-field="languageOther">
+                        </lightning-input>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="section-divider"></div>
+
+                <!-- Notes Guidelines Toggle -->
+                <div class="guidelines-toggle-row">
+                    <lightning-input
+                        type="toggle"
+                        label="Show Notes Guidelines"
+                        checked={showNotesGuidelines}
+                        message-toggle-active="Visible"
+                        message-toggle-inactive="Hidden"
+                        onchange={handleGuidelinesToggle}>
+                    </lightning-input>
+                </div>
+
+                <!-- Notes Guidelines (conditional) -->
+                <template if:true={showNotesGuidelines}>
+                    <div class="notes-guidelines fade-in">
+                        <h3 class="guidelines-title">Notes Guidelines</h3>
+                        <div class="guideline-section">
+                            <p class="guideline-heading">AN ANALYSIS OF THE CRITICAL PROBLEM:</p>
+                            <p class="guideline-body">Assistance requested / Questions answered / Identification of other problems to be considered / Red flags / Ideas brainstormed / Resources identified</p>
+                        </div>
+                        <div class="guideline-section">
+                            <p class="guideline-heading">RECOMMENDATIONS AND ACTIONS TO BE TAKEN:</p>
+                            <p class="guideline-body">Directions given / Warnings or cautions / Quick lessons taught / Resources revealed / Ideas floated / Websites visited / Forms reviewed / Referrals to agencies</p>
+                        </div>
+                        <div class="guideline-section">
+                            <p class="guideline-heading">NEXT STEPS &amp; FOLLOW-UP ACTIONS:</p>
+                            <p class="guideline-body">What specifically the client will do and what will the counselor do / Classes enrolled / Books checked out / Other advisors sought / Websites to visit / Research to do / Materials to send / Agency contacts to make / Materials filed / Prep work for next meeting</p>
+                        </div>
+                        <div class="guideline-section">
+                            <p class="guideline-heading">IMPACT REMINDER:</p>
+                            <p class="guideline-body">Have you reminded the client recently that we are measured by their success? Remind the client during face-to-face sessions and in follow up emails that it is important for them to respond to our impact attribution information requests.</p>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Notes Editor -->
+                <div class="notes-editor-wrapper">
+                    <label class="notes-label">
+                        Notes <abbr title="required" class="required-mark">*</abbr>
+                    </label>
+                    <lightning-input-rich-text
+                        value={notes}
+                        placeholder="Paste your Gemini-formatted notes here, or type directly…"
+                        onchange={handleNotesChange}>
+                    </lightning-input-rich-text>
+                </div>
+
+                <!-- Validation Error -->
+                <template if:true={step1Error}>
+                    <div class="inline-error" role="alert">{step1Error}</div>
+                </template>
+
+            </div>
+
+            <!-- Step 1 Footer -->
+            <div class="wizard-footer">
+                <span class="step-info">Step 1 of 2</span>
+                <lightning-button
+                    label="Review &amp; Save"
+                    variant="brand"
+                    icon-name="utility:preview"
+                    icon-position="right"
+                    onclick={goToStep2}>
+                </lightning-button>
+            </div>
+        </template>
+
+        <!-- ===================== STEP 2: REVIEW & SAVE ===================== -->
+        <template if:true={isStep2}>
+            <div class="card fade-in">
+
+                <!-- Session Summary -->
+                <div class="review-section">
+                    <h3 class="review-section-title">
+                        <lightning-icon icon-name="utility:list" size="x-small"></lightning-icon>
+                        Session Summary
+                        <lightning-button-icon
+                            icon-name="utility:edit"
+                            alternative-text="Edit session details"
+                            title="Edit session details"
+                            variant="bare"
+                            size="small"
+                            onclick={goToStep1}
+                            class="edit-btn">
+                        </lightning-button-icon>
+                    </h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">Date &amp; Time</span>
+                            <span class="summary-value">{sessionDateTimeFormatted}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Session Site</span>
+                            <span class="summary-value">{sessionSiteDisplay}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Area of Counseling</span>
+                            <span class="summary-value">{areaOfCounseling}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Session Type</span>
+                            <span class="summary-value">{sessionType}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Delivery Type</span>
+                            <span class="summary-value">{deliveryType}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Business Status</span>
+                            <span class="summary-value">{businessStatus}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Contact Hours</span>
+                            <span class="summary-value">{contactHours}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Prep Hours</span>
+                            <span class="summary-value">{prepHours}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Travel Hours</span>
+                            <span class="summary-value">{travelHours}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Travel Distance</span>
+                            <span class="summary-value">{travelDistance} mi</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Language</span>
+                            <span class="summary-value">{language}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Program Funding</span>
+                            <span class="summary-value">{programFunding}</span>
+                        </div>
+                        <template if:true={subProgram}>
+                            <div class="summary-item">
+                                <span class="summary-label">Sub-Program</span>
+                                <span class="summary-value">{subProgram}</span>
+                            </div>
+                        </template>
+                        <template if:true={verified}>
+                            <div class="summary-item">
+                                <span class="summary-label">Verified</span>
+                                <span class="summary-value badge badge-green">Yes</span>
+                            </div>
+                        </template>
+                        <template if:true={exporting}>
+                            <div class="summary-item">
+                                <span class="summary-label">Exporting</span>
+                                <span class="summary-value badge badge-blue">Yes</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Notes Review & Edit (full-width, large editor) -->
+                <div class="review-section">
+                    <h3 class="review-section-title">
+                        <lightning-icon icon-name="utility:note" size="x-small"></lightning-icon>
+                        Session Notes
+                        <span class="review-hint">— review and edit before saving</span>
+                    </h3>
+                    <div class="review-notes-editor">
+                        <lightning-input-rich-text
+                            value={notes}
+                            placeholder="Your notes will appear here for final review and editing…"
+                            onchange={handleNotesChange}>
+                        </lightning-input-rich-text>
+                    </div>
+                </div>
+
+                <!-- Save Error -->
+                <template if:true={saveError}>
+                    <div class="inline-error" role="alert">{saveError}</div>
+                </template>
+
+            </div>
+
+            <!-- Step 2 Footer -->
+            <div class="wizard-footer">
+                <lightning-button
+                    label="Back"
+                    variant="neutral"
+                    icon-name="utility:left"
+                    onclick={goToStep1}>
+                </lightning-button>
+                <span class="step-info">Step 2 of 2</span>
+                <lightning-button
+                    label="Save Session"
+                    variant="brand"
+                    icon-name="utility:save"
+                    icon-position="right"
+                    disabled={isSaving}
+                    onclick={handleSave}>
+                </lightning-button>
+            </div>
+        </template>
+
+        <!-- SUCCESS -->
+        <template if:true={isSaved}>
+            <div class="success-state fade-in">
+                <div class="success-icon">
+                    <lightning-icon icon-name="action:approval" size="large"></lightning-icon>
+                </div>
+                <h2>Session Saved!</h2>
+                <p>New session has been created successfully.</p>
+                <lightning-button
+                    label="View Session"
+                    variant="brand"
+                    onclick={handleViewSession}>
+                </lightning-button>
+            </div>
+        </template>
+
+    </div>
+</template>
