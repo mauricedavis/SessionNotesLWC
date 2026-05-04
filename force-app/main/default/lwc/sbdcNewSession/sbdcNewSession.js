@@ -356,7 +356,7 @@ export default class SbdcNewSession extends NavigationMixin(LightningElement) {
 
         try {
             const fields = {
-                [SESSION_DATE_TIME_FIELD.fieldApiName]  : this.sessionDateTime,
+                [SESSION_DATE_TIME_FIELD.fieldApiName]  : this._toISOString(this.sessionDateTime),
                 [AREA_COUNSELING_FIELD.fieldApiName]    : this.areaOfCounseling,
                 [SESSION_TYPE_FIELD.fieldApiName]       : this.sessionType,
                 [DELIVERY_TYPE_FIELD.fieldApiName]      : this.deliveryType,
@@ -418,6 +418,10 @@ export default class SbdcNewSession extends NavigationMixin(LightningElement) {
     _nowLocal() {
         const now = new Date();
         const pad = n => String(n).padStart(2, '0');
-        return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:00`;
+    _toISOString(val) {
+        if (!val) return null;
+        const s = val.length === 16 ? val + ':00' : val;
+        return new Date(s).toISOString();
     }
 }
