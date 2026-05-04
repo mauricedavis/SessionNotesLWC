@@ -337,14 +337,11 @@ export default class SbdcNewSession extends NavigationMixin(LightningElement) {
         if (this.sessionType === 'Counseling: Initial' && this.contactHours < 0.5) {
             this.step1Error = 'Initial Counseling Sessions require at least 0.5 Contact Hours.'; return false;
         }
-        if (this.sessionType === 'Counseling: Follow On' && this.contactHours > 8) {
-            this.step1Error = 'Follow On Counseling Sessions cannot exceed 8 Contact Hours.'; return false;
+        if (this.contactHours > 8) {
+            this.step1Error = 'Contact Hours cannot exceed 8.'; return false;
         }
-        if (this.prepHours < 0.01) {
-            this.step1Error = 'Prep Hours cannot be zero. Please enter a value.'; return false;
-        }
-        if (this.sessionType === 'Counseling: Initial' && this.prepHours > 8) {
-            this.step1Error = 'Prep Hours cannot exceed 8 for a Counseling: Initial session.'; return false;
+        if (this.prepHours > 8) {
+            this.step1Error = 'Prep Hours cannot exceed 8.'; return false;
         }
         if (!this.notes || this.notes.replace(/<[^>]*>/g, '').trim() === '') {
             this.step1Error = 'Notes are required.'; return false;
