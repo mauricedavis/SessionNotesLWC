@@ -396,7 +396,20 @@ export default class SbdcNewSession extends NavigationMixin(LightningElement) {
 
         } catch (error) {
             this.isSaving  = false;
-            const msg = error?.body?.message || error?.message || 'An unexpected error occurred.';
+            // LDS createRecord validation rule errors surface in body.output.errors
+            // or body.output.fieldErrors -- extract those before falling back to body.message
+            let msg = 'An unexpected error occurred.';
+            const output = error?.body?.output;
+            if (output?.errors?.length) {
+                msg = output.errors.map(e => e.message).join(' ');
+            } else if (output?.fieldErrors) {
+                const fieldMsgs = Object.values(output.fieldErrors).flat().map(e => e.message);
+                if (fieldMsgs.length) msg = fieldMsgs.join(' ');
+            } else if (error?.body?.message) {
+                msg = error.body.message;
+            } else if (error?.message) {
+                msg = error.message;
+            }
             this.saveError = `Save failed: ${msg}`;
         }
     }
