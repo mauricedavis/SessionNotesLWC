@@ -334,12 +334,19 @@ export default class SbdcNewSession extends NavigationMixin(LightningElement) {
         if (!this.language) {
             this.step1Error = 'Language is required.'; return false;
         }
-        if (this.sessionType === 'Counseling: Initial' && this.contactHours < 0.5) {
-            this.step1Error = 'Initial Counseling Sessions require at least 0.5 Contact Hours.'; return false;
+        // Contact Hours: must be > 0 for all session types (zero hours cause EDMIS errors)
+        if (!this.contactHours || this.contactHours <= 0) {
+            this.step1Error = 'Contact Hours must be greater than 0.'; return false;
         }
+        // Contact Hours: Initial Counseling minimum 0.5
+        if (this.sessionType === 'Counseling: Initial' && this.contactHours < 0.5) {
+            this.step1Error = 'Initial Counseling sessions require at least 0.5 Contact Hours.'; return false;
+        }
+        // Contact Hours: org-level max cap
         if (this.contactHours > 8) {
             this.step1Error = 'Contact Hours cannot exceed 8.'; return false;
         }
+        // Prep Hours: org-level max cap (zero is allowed per SBA XSD HourType minInclusive=0)
         if (this.prepHours > 8) {
             this.step1Error = 'Prep Hours cannot exceed 8.'; return false;
         }
