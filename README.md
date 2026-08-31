@@ -133,6 +133,9 @@ The script: pulls latest from GitHub, runs pre-deploy verification checks, promp
 
 ## Changelog
 
+### August 2026 — Zero Contact Hours Fix (Production)
+- **Block zero Contact Hours for all session types** — Counseling: Follow On and other non-Initial session types were allowing `0.00` Contact Hours to pass validation, causing downstream EDMIS upload errors. Restored `contactHours > 0` guard for all session types as the first hours check. Prep Hours retain zero-allowed behavior (not an EDMIS required field). Sandbox validated, deployed to `mi-sbdc-prod`.
+
 ### June 8, 2026 — Production Deployment
 - Deployed `sbdcNewSession` LWC and `Case.New_Session` Quick Action to `mi-sbdc-prod`
 - Confirmed by client (Lizz Hellinga); MSBDC-63 and MSBDC-84 closed as Done
